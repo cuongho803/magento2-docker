@@ -1,0 +1,29 @@
+version: '2.2'
+services:
+  web:
+    environment:
+      - VIRTUAL_HOST=
+      - VIRTUAL_PORT=
+      - CERT_NAME=
+  node:
+    image: 'node:16'
+    working_dir: /app
+    command: ["yarn", "dev"]
+    volumes:
+      - /home/cuongho/Sites/shopifymanual/html/web/frontend:/app
+    expose:
+      - 3000
+    environment:
+      - VIRTUAL_HOST=${MAIN_DOMAIN}
+      - VIRTUAL_PORT=3000
+      - CERT_NAME=${MAIN_DOMAIN}
+      - BACKEND_PORT=8080
+      - BACKEND_HOST=web
+      - FRONTEND_PORT=3000
+      - SHOPIFY_API_KEY=1437acb477560560b2b6dc5b41172aae
+      - HOST=${MAIN_DOMAIN}
+    networks:
+      - default
+      - proxy
+  fpm_xdebug:
+    restart: always
