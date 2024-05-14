@@ -1,0 +1,12 @@
+version: '2.2'
+services:
+  mkcert:
+    build: 
+      context: ${FR_DOCKER_SHARED}/mkcert
+      dockerfile: Dockerfile
+    image: vinhphon/docker-mkcert
+    volumes:
+      - ${FR_DOCKER_SHARED:-../.shared-services}/certs:/root/.local/share/mkcert
+    environment:
+      - DOMAINS=${MAIN_DOMAIN},${MULTIPLE_DOMAINS}
+      - FILENAME=${MAIN_DOMAIN}

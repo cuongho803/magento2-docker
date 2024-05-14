@@ -1,0 +1,23 @@
+version: '2.2'
+services:
+  node:
+    image: 'node:16'
+    working_dir: /app
+    command: ["yarn", "start"]
+    extra_hosts:
+      - 'xdebug mailhog ${SHARED_SERVICES:-mysql redis elasticsearch mysql8}:${HOST_IP:-172.17.0.1}'
+    volumes:
+      - '../html:/app'
+      - '${FR_DOCKER_SHARED}/certs/rootCA.pem:/usr/local/share/ca-certificates/rootCA.crt'
+    expose:
+      - 3000
+    environment:
+      - VIRTUAL_HOST=${MAIN_DOMAIN}
+      - CERT_NAME=${MAIN_DOMAIN}
+    networks:
+      - default
+      - proxy
+
+networks:
+  proxy:
+    external: true

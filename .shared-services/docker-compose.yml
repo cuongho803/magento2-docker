@@ -1,0 +1,120 @@
+version: '2.2'
+services:
+  nginx-proxy:
+    container_name: nginx-proxy
+    image: 'jwilder/nginx-proxy'
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+      - ./nginx.tmpl:/app/nginx.tmpl:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./config/docker/nginx/conf.d/my_proxy.conf:/etc/nginx/conf.d/my_proxy.conf
+    userns_mode: 'host'
+  mkcert:
+    build: 
+      context: ./mkcert
+      dockerfile: Dockerfile
+    image: vinhphon/docker-mkcert
+    volumes:
+      - ./certs:/root/.local/share/mkcert
+    environment:
+      - DOMAINS=phpmyadmin.local,mailhog.local,localhost
+      - FILENAME=localhost
+  mysql:
+    container_name: mysql
+    restart: always
+    image: 'mariadb:10.4'
+    ports:
+      - '3306:3306'
+    volumes:
+      - ./mysql:/var/lib/mysql
+      - ./mysql.cnf:/etc/mysql/conf.d/custom.cnf:ro
+      - ./dump:/dump:ro
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysql
+  mysql8:
+    container_name: mysql8
+    restart: always
+    image: 'mysql:8.0.22'
+    ports:
+      - '3336:3306'
+    volumes:
+      - ./mysql8:/var/lib/mysql
+      - ./mysql8.cnf:/etc/mysql/conf.d/custom.cnf:ro
+      - ./dump:/dump:ro
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysql
+  phpmyadmin:
+    container_name: phpmyadmin
+    restart: always
+    image: 'phpmyadmin/phpmyadmin:latest'
+    expose:
+      - 80
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysql
+      - PMA_HOST=mysql
+      - VIRTUAL_HOST=phpmyadmin.local
+      - CERT_NAME=localhost
+  mailhog:
+    restart: always
+    container_name: mailhog
+    image: 'mailhog/mailhog:latest'
+    user: root
+    expose:
+      - 8025
+    ports:
+      - '1025:1025'
+    environment:
+      - VIRTUAL_HOST=mailhog.local
+      - VIRTUAL_PORT=8025
+      - CERT_NAME=localhost
+    command: [ "-storage=maildir", "-maildir-path=/maildir" ]
+    volumes:
+      - mailhog-cache:/maildir
+  mongodb:
+    restart: always
+    image: owncloudops/mongodb:4.2.3
+    container_name: mongodb
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongodb-cache:/data/db
+      - ./dump:/dump:ro
+  redis:
+    restart: always
+    container_name: redis
+    image: 'redis:latest'
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-cache:/data
+  elasticsearch:
+    restart: always
+    container_name: elasticsearch
+    image: 'magento/magento-cloud-docker-elasticsearch:7.9-1.2.2'
+    ports:
+      - '9200:9200'
+    volumes:
+      - elasticsearch-cache:/usr/share/elasticsearch/data
+  rabbitmq:
+    container_name: rabbitmq
+    restart: always
+    image: 'rabbitmq:latest'
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+networks:
+  default:
+    name: proxy
+volumes:
+  mongodb-cache:
+  redis-cache:
+  mailhog-cache:
+  elasticsearch-cache:
+  cert:

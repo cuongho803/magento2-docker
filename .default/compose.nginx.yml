@@ -1,0 +1,28 @@
+version: '2.2'
+services:
+  web:
+    restart: always
+    image: 'nginx:${NGINX_VER:-1.23.2}-alpine'
+    expose:
+      - 8080
+    volumes:
+      - '${SOURCE_PATH:-../html}:/app:ro'
+      - '${FR_DOCKER_DEFAULT}/nginx/nginx.conf:/etc/nginx/nginx.conf:ro'
+      - '${FR_DOCKER_DEFAULT}/nginx/vhost.conf:/etc/nginx/templates/default.conf.template:ro'
+      - '${FR_DOCKER_PROJECT}/nginx/custom.conf:/etc/nginx/conf.d/custom/custom.conf:ro'
+    environment:
+      - VIRTUAL_HOST=${MAIN_DOMAIN},${MULTIPLE_DOMAINS}
+      - VIRTUAL_PORT=8080
+      - CERT_NAME=${MAIN_DOMAIN}
+      - MAGENTO_ROOT=${MAGENTO_ROOT:-/app}
+      - DOCUMENT_ROOT=${DOCUMENT_ROOT:-/app/pub}
+      - MAGENTO_RUN_MODE=${MAGENTO_RUN_MODE:-developer}
+      - UPLOAD_MAX_FILESIZE=${UPLOAD_MAX_FILESIZE:-128M}
+    networks:
+      - default
+      - proxy
+    depends_on:
+      - fpm_xdebug
+networks:
+  proxy:
+    external: true

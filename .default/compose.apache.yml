@@ -1,0 +1,29 @@
+version: '2.2'
+services:
+  web:
+    restart: always
+    image: 'bitnami/apache:${APACHE_VER:-2.4.46}-debian-10-r264'
+    expose:
+      - 8080
+    volumes:
+      - '${SOURCE_PATH:-../html}:/app:ro'
+      - '${FR_DOCKER_DEFAULT}/apache/httpd.conf:/opt/bitnami/apache/conf/httpd.conf:ro'
+      - '${FR_DOCKER_DEFAULT}/apache/vhost.conf:/opt/bitnami/apache/conf/vhosts/vhost.conf:ro'
+      - '${FR_DOCKER_DEFAULT}/apache/pagespeed_${PAGESPEED:-off}.conf:/opt/bitnami/apache/conf/enable_pagespeed.conf:ro'
+      - '${FR_DOCKER_PROJECT}/apache/custom.conf:/opt/bitnami/apache/conf/vhosts/custom/custom.conf:ro'
+    depends_on:
+      - fpm_xdebug
+    environment:
+      - VIRTUAL_HOST=${MAIN_DOMAIN},${MULTIPLE_DOMAINS}
+      - VIRTUAL_PORT=8080
+      - CERT_NAME=${MAIN_DOMAIN}
+      - DOCUMENT_ROOT=${DOCUMENT_ROOT:-/app/pub}
+      - MAGENTO_ROOT=${MAGENTO_ROOT:-/app}
+    networks:
+      - default
+      - proxy
+    healthcheck:
+      disable: true
+networks:
+  proxy:
+    external: true

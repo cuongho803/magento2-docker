@@ -1,0 +1,51 @@
+export FR_DOCKER_DEFAULT="$FR_DOCKER"/.default
+export FR_DOCKER_SHARED="$FR_DOCKER"/.shared-services
+alias mysql='docker exec -it mysql mysql'
+alias mysqlimport='docker exec -i mysql mysql'
+alias mysqldump='docker exec -it mysql mysqldump'
+alias mysql8='docker exec -it mysql mysql'
+alias mysqlimport8='docker exec -i mysql mysql'
+alias mysqldump8='docker exec -it mysql mysqldump'
+alias redis-cli='docker exec -it redis redis-cli'
+
+alias fr-docker-init='bash "$FR_DOCKER"/project-init.sh'
+
+export FR_DOCKER_PROJECT="../.docker"
+
+ipdcfolder () {
+	if [ -f .docker-path ]; then 
+		export FR_DOCKER_PROJECT="$(cat .docker-path)" 
+	fi
+}
+
+alias fdccmd='ipdcfolder && docker-compose --env-file="$FR_DOCKER_PROJECT"/.env -f "$FR_DOCKER_PROJECT"/docker-compose.yml -f "$FR_DOCKER_SHARED"/compose.mkcert.yml'
+
+alias php='fdccmd -f "$FR_DOCKER_PROJECT"/docker-compose.override.yml run --rm --no-deps deploy php'
+alias grunt='fdccmd -f "$FR_DOCKER_PROJECT"/docker-compose.override.yml run --rm --no-deps deploy grunt'
+alias npm='fdccmd -f "$FR_DOCKER_PROJECT"/docker-compose.override.yml run --rm --no-deps deploy npm'
+alias composer='fdccmd -f "$FR_DOCKER_PROJECT"/docker-compose.override.yml run --rm --no-deps deploy composer'
+alias magento-cloud='docker-compose --env-file="$FR_DOCKER_PROJECT"/.env -f $FR_DOCKER_DEFAULT/docker-compose.cloud.yml run --rm --no-deps cloud'
+
+apache () {
+	fdccmd -f "$FR_DOCKER_DEFAULT"/compose.apache.yml -f "$FR_DOCKER_PROJECT"/docker-compose.override.yml "$@"
+	fdccmd -f "$FR_DOCKER_DEFAULT"/compose.apache.yml -f "$FR_DOCKER_PROJECT"/docker-compose.override.yml rm -f
+}
+
+apache.varnish () {
+	fdccmd -f "$FR_DOCKER_DEFAULT"/compose.apache.varnish.yml -f "$FR_DOCKER_PROJECT"/docker-compose.override.yml "$@"
+	fdccmd -f "$FR_DOCKER_DEFAULT"/compose.apache.varnish.yml -f "$FR_DOCKER_PROJECT"/docker-compose.override.yml rm -f
+}
+
+nginx () {
+	fdccmd -f "$FR_DOCKER_DEFAULT"/compose.nginx.yml -f "$FR_DOCKER_PROJECT"/docker-compose.override.yml "$@"
+	fdccmd -f "$FR_DOCKER_DEFAULT"/compose.nginx.yml -f "$FR_DOCKER_PROJECT"/docker-compose.override.yml rm -f
+}
+
+nginx.varnish () {
+	fdccmd -f "$FR_DOCKER_DEFAULT"/compose.nginx.varnish.yml -f "$FR_DOCKER_PROJECT"/docker-compose.override.yml "$@"
+	fdccmd -f "$FR_DOCKER_DEFAULT"/compose.nginx.varnish.yml -f "$FR_DOCKER_PROJECT"/docker-compose.override.yml rm -f
+}
+
+alias pmysql='fdccmd -f "$FR_DOCKER_PROJECT"/docker-compose.override.yml exec mysql mysql'
+alias pmysqlimport='fdccmd -f "$FR_DOCKER_PROJECT"/docker-compose.override.yml exec -iT mysql mysql'
+alias pmysqldump='fdccmd -f "$FR_DOCKER_PROJECT"/docker-compose.override.yml exec mysql mysqldump'

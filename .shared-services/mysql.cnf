@@ -1,0 +1,4 @@
+[mysqld]
+connect_timeout=100
+innodb_strict_mode=0
+innodb_log_file_size = 256M
